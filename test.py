@@ -23,30 +23,35 @@ rm_emails = ""
 #used to store the exact time each email was added or removed
 log = "\n"
 
-# temporary: will be replaced
 def setEmails(f):
-    global db_emails
+    # temporary: will be replaced when acutally getting data from a database and
+    # not a textfile   global db_emails
     with open(f, 'r') as file:
         for line in file:
             lname, fname, email = line.split()
             db_emails.append((lname, fname, email[1:-1]))
 
-''' compares email lists and appends data to appropriate add/rm_email data
-    structs.
+
+def update():
+    ''' compares email lists and appends data to appropriate add/rm_email data structs.
         * if (email in webserv but not datatbase) remove;
         * if (email in database but not webserv) add;
-'''
-def update():
+    '''
     global web_emails
     global db_emails
     global rm_emails
     global add_emails
+
+    #compares every email from the webserv to those found in the database
     for web_data in web_emails:
-        if web_data not in db_emails:
+        if web_data not in db_emails: #if true, then that email must be removed
             rm_emails += web_data[0] + ' ' + web_data[1] + " <" + web_data[2] + ">\n"
+    
+    #compares every email from the database to those found in the webserv
     for db_data in db_emails:
-        if db_data not in web_emails:
+        if db_data not in web_emails: #if true, then that email must be added
             add_emails += db_data[0] + ' ' + db_data[1] + " <" + db_data[2] + ">\n"
+
     removeEmails(rm_emails)
     logging("removed", rm_emails)
 
@@ -97,9 +102,11 @@ info = re.search(r'<em>0 members total</em>',req.text)
 
 temp = ''
 while info is None: #emails found
-    #re needs to grab the NAMES as well as email; use groups... 
+    #addresses grabs every email from the html page
     addresses = map(str,re.findall(r'[a-zA-Z0-9!\#\$\%\&\'\*\+\-\/\=\?\^\_\`\{\|\}\~\.]+?@[a-zA-Z0-9\-\.]+?</a>',req.text))
+    #names grabs every name from the html page
     names = map(str,re.findall(r'value="\w* \w*"',req.text))
+    #data associates the two above such that each name is linked with an email
     data = zip(names, addresses)  
     
     for d in data:
@@ -113,7 +120,6 @@ while info is None: #emails found
 
     req = session.get('https://lists.fsu.edu/mailman/admin/hpc-test/members/list')
     info = re.search(r'<em>0 members total</em>',req.text)
-
 #else no emails
 addEmails(temp)
 
@@ -121,9 +127,8 @@ addEmails(temp)
 
 #Collect all the emails of current users somehow from the servers
 #add emails from RCC database
-
 #temp vvv
-setEmails('oldEmails.txt')
+setEmails('newEmails.txt')
 #temp ^^^
 
 #At this point, db data is collected: names and emails

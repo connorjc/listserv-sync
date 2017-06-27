@@ -1,20 +1,24 @@
-#SETUP:
+##SETUP:
 1. virtualenv DIRECTORY --no-site-packages
 2. cd DIRECTORY
 3. source bin/activate
 4. git clone ________
 
-#INSTALL OPTION 1: pip install ______ 
+##INSTALL OPTION 1: pip install ______ 
 * splinter
 * requests
 
-#INTSTALL OPTION 2:
+##INTSTALL OPTION 2:
 * pip install -r requirements.txt
 
-#DOWNLOAD:
+##DOWNLOAD:
 place phantomjs executable in virtualenv bin
 
-#NOTES:
+##RUN:
+./test.py 2> /dev/null
+* Redirecting stderr because of selenium or requests warnings.
+
+##NOTES:
 The email text files contain dummy email/name data used
 to populate webserv and simulate discrepencies between the
 database and webserv data.
