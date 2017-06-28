@@ -15,6 +15,7 @@
 
 ##RUN:
 ./test.py 2> /dev/null
+
 * Redirecting stderr because of selenium or requests warnings.
 
 ##NOTES:
