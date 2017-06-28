@@ -7,14 +7,20 @@
 6. cp phantomjs ../bin
 
 ##INSTALL OPTION 1:
-* pip install splinter
-* pip install requests
+```
+pip install splinter
+pip install requests
+```
 
 ##INTSTALL OPTION 2:
-* pip install -r requirements.txt
+```
+pip install -r requirements.txt
+```
 
 ##RUN:
+```
 ./test.py 2> /dev/null
+```
 
 * Redirecting stderr because of selenium or requests warnings.
 
