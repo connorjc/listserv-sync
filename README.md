@@ -3,16 +3,15 @@
 2. cd DIRECTORY
 3. source bin/activate
 4. git clone ________
+5. cd listserv-sync
+6. cp phantomjs ../bin
 
-##INSTALL OPTION 1: pip install ______ 
-* splinter
-* requests
+##INSTALL OPTION 1:
+* pip install splinter
+* pip install requests
 
 ##INTSTALL OPTION 2:
 * pip install -r requirements.txt
-
-##DOWNLOAD:
-place phantomjs executable in virtualenv bin
 
 ##RUN:
 ./test.py 2> /dev/null
