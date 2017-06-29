@@ -19,7 +19,7 @@ pip install -r requirements.txt
 
 ##RUN:
 ```
-./test.py 2> /dev/null
+./update_emails.py 2> /dev/null
 ```
 
 * Redirecting stderr because of selenium or requests warnings.
