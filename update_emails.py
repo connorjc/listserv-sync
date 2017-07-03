@@ -5,6 +5,8 @@ import requests, re, time
 #login data
 pswd = 'Ht3stPC16'
 
+listserv_uri = 'https://lists.fsu.edu/mailman/admin/hpc-test'
+
 '''
 lists to be filled with scraped data
 format: [("lastName","firstName","<email>"), (...)]
@@ -19,9 +21,6 @@ string of strings: "last first <email>\n..."
 '''
 add_emails = "" 
 rm_emails = ""
-
-#used to store the exact time each email was added or removed
-log = "\n"
 
 def setEmails(f):
     # temporary: will be replaced when acutally getting data from a database and
@@ -53,51 +52,56 @@ def update():
             add_emails += db_data[0] + ' ' + db_data[1] + " <" + db_data[2] + ">\n"
 
     removeEmails(rm_emails)
-    logging("removed", rm_emails)
 
     addEmails(add_emails)
-    logging("added", add_emails)
 
-def logging(status, emails):
+def log(message):
     ''' logs in the format of: "timestamp removed/added email"
         time stamp in the format: "YYYY-mm-dd hh:mm:ss"
-        status: "added" or "removed"
     '''
-    global log
-    for email in emails.split('\n')[:-1]:
-        email = email.split('<')[1][:-1]
-        log += time.strftime("%Y-%m-%d %H:%M:%S") + ' ' + status + ' ' + email + '\n'
+    #log += time.strftime("%Y-%m-%d %H:%M:%S") + ' ' + status + ' ' + email + '\n'
+    print(time.strftime("%Y-%m-%d %H:%M:%S") + ' ' + message)
 
-def removeEmails(e):  #remove all emails on the site
-    browser.visit('https://lists.fsu.edu/mailman/admin/hpc-test/members/remove')
+def removeEmails(e, l="enable"):  #remove all emails on the site
+    browser.visit(listserv_uri + '/members/remove')
     browser.fill('unsubscribees', e)
     browser.find_by_name('setmemberopts_btn').click()
     browser.back()
     browser.reload()
 
-def addEmails(e):  #remove all emails on the site
-    browser.visit('https://lists.fsu.edu/mailman/admin/hpc-test/members/add')
+    if l == "enable":
+        for email in e.split('\n')[:-1]:
+            email = email.split('<')[1][:-1]
+            log("removed " + email)
+
+def addEmails(e, l="enable"):  #remove all emails on the site
+    browser.visit(listserv_uri + '/members/add')
     browser.fill('subscribees', e)
     browser.find_by_name('setmemberopts_btn').click()
     browser.back()
     browser.reload()
 
+    if l == "enable":
+        for email in e.split('\n')[:-1]:
+            email = email.split('<')[1][:-1]
+            log("added " + email)
+        
 #go to mailserv site and login
 browser = Browser('phantomjs')
-browser.visit('https://lists.fsu.edu/mailman/admin/hpc-test')
+browser.visit(listserv_uri)
 browser.fill('adminpw',pswd)
 browser.find_by_name('admlogin').click()
 
 #login with requests session so I can pull html to parse
 session = requests.session()
 login_data = dict(adminpw=pswd)
-r = session.post('https://lists.fsu.edu/mailman/admin/hpc-test', data=login_data)
+r = session.post(listserv_uri, data=login_data)
 
 #navigate to membership management
 browser.click_link_by_href('../admin/hpc-test/members')
 
 #get membership list html and check if empty or not
-req = session.get('https://lists.fsu.edu/mailman/admin/hpc-test/members/list')
+req = session.get(listserv_uri + '/members/list')
 info = re.search(r'<em>0 members total</em>',req.text)
 
 temp = ''
@@ -116,27 +120,26 @@ while info is None: #emails found
 
     for t in web_emails:
         temp += t[0] + ' ' + t[1] + " <" + t[2] + ">\n"
-    removeEmails(temp)
+    removeEmails(temp, "disable")
 
-    req = session.get('https://lists.fsu.edu/mailman/admin/hpc-test/members/list')
+    req = session.get(listserv_uri + '/members/list')
     info = re.search(r'<em>0 members total</em>',req.text)
 #else no emails
-addEmails(temp)
+addEmails(temp, "disable")
 
 #At this point, webserv data is collected: names and emails
 
 #Collect all the emails of current users somehow from the servers
 #add emails from RCC database
 #temp vvv
-setEmails('newEmails.txt')
+setEmails('mixEmails.txt')
 #temp ^^^
 
 #At this point, db data is collected: names and emails
 
 update()
-print(log)
-print("Webserv and Database are up to date.\n")
+log("Webserv and Database are up to date.\n")
 
 #logout before exiting
-browser.visit('https://lists.fsu.edu/mailman/admin/hpc-test/logout')
+browser.visit(listserv_uri + '/logout')
 browser.quit()

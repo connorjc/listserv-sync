@@ -30,5 +30,5 @@ to populate webserv and simulate discrepencies between the
 database and webserv data.
 
 * oldEmails.txt : total fake data
-* mixEmails.txt : oldEmails short six 
+* mixEmails.txt : oldEmails short ~164 emails 
 * newEmails.txt : 5 emails from the original
