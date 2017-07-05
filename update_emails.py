@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 from splinter import Browser
-import requests, re, time
+from dotenv import load_dotenv, find_dotenv
+import requests, re, time, os
+
+load_dotenv(find_dotenv())
 
 #login data
-pswd = 'Ht3stPC16'
-
-listserv_uri = 'https://lists.fsu.edu/mailman/admin/hpc-test'
+PSWD = os.getenv('PASSWORD')
+URI = os.getenv('LISTSERV_URI')
 
 '''
 lists to be filled with scraped data
@@ -63,7 +65,7 @@ def log(message):
     print(time.strftime("%Y-%m-%d %H:%M:%S") + ' ' + message)
 
 def removeEmails(e, l="enable"):  #remove all emails on the site
-    browser.visit(listserv_uri + '/members/remove')
+    browser.visit(URI + '/members/remove')
     browser.fill('unsubscribees', e)
     browser.find_by_name('setmemberopts_btn').click()
     browser.back()
@@ -75,7 +77,7 @@ def removeEmails(e, l="enable"):  #remove all emails on the site
             log("removed " + email)
 
 def addEmails(e, l="enable"):  #remove all emails on the site
-    browser.visit(listserv_uri + '/members/add')
+    browser.visit(URI + '/members/add')
     browser.fill('subscribees', e)
     browser.find_by_name('setmemberopts_btn').click()
     browser.back()
@@ -87,21 +89,21 @@ def addEmails(e, l="enable"):  #remove all emails on the site
             log("added " + email)
         
 #go to mailserv site and login
-browser = Browser('phantomjs')
-browser.visit(listserv_uri)
-browser.fill('adminpw',pswd)
+browser = Browser('phantomjs') #remove 'phantomjs' to use default firefox
+browser.visit(URI)
+browser.fill('adminpw',PSWD)
 browser.find_by_name('admlogin').click()
 
 #login with requests session so I can pull html to parse
 session = requests.session()
-login_data = dict(adminpw=pswd)
-r = session.post(listserv_uri, data=login_data)
+login_data = dict(adminpw=PSWD)
+r = session.post(URI, data=login_data)
 
 #navigate to membership management
 browser.click_link_by_href('../admin/hpc-test/members')
 
 #get membership list html and check if empty or not
-req = session.get(listserv_uri + '/members/list')
+req = session.get(URI + '/members/list')
 info = re.search(r'<em>0 members total</em>',req.text)
 
 temp = ''
@@ -122,7 +124,7 @@ while info is None: #emails found
         temp += t[0] + ' ' + t[1] + " <" + t[2] + ">\n"
     removeEmails(temp, "disable")
 
-    req = session.get(listserv_uri + '/members/list')
+    req = session.get(URI + '/members/list')
     info = re.search(r'<em>0 members total</em>',req.text)
 #else no emails
 addEmails(temp, "disable")
@@ -141,5 +143,5 @@ update()
 log("Webserv and Database are up to date.\n")
 
 #logout before exiting
-browser.visit(listserv_uri + '/logout')
+browser.visit(URI + '/logout')
 browser.quit()

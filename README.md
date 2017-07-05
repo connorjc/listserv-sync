@@ -4,17 +4,20 @@
 3. source bin/activate
 4. git clone ________
 5. cd listserv-sync
-6. cp phantomjs ../bin
+6. copy broswer drivers to bin:
+* headless - cp phantomjs ../bin
+* firefox - cp geckodriver ../bin
+7. cp .env.example .env
+8. edit .env to store the values with website and password to the listserv
 
-##INSTALL OPTION 1:
-```
-pip install splinter
-pip install requests
-```
-
-##INTSTALL OPTION 2:
+##INTSTALL:
 ```
 pip install -r requirements.txt
+```
+
+##GENERATE INSTALLATION LIST:
+```
+pip freeze > requirements.txt
 ```
 
 ##RUN:
