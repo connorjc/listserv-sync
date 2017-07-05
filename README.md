@@ -4,11 +4,14 @@
 3. source bin/activate
 4. git clone ________
 5. cd listserv-sync
-6. copy broswer drivers to bin:
-* headless - cp phantomjs ../bin
-* firefox - cp geckodriver ../bin
-7. cp .env.example .env
-8. edit .env to store the values with website and password to the listserv
+6. *cp phantomjs ../bin
+7. *cp geckodriver ../bin
+8. cp .env.example .env
+9. edit .env to store the values with website and password to the listserv
+
+* phantomjs is a headless browser
+* geckodriver is used for Firefox
+    * geckodriver is only included for graphical debugging purposes.
 
 ##INTSTALL:
 ```
