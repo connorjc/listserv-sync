@@ -1,13 +1,20 @@
 #!/usr/bin/env python
 from splinter import Browser
 from dotenv import load_dotenv, find_dotenv
-import requests, re, time, os
+import requests, time, os, sys, re
 
 load_dotenv(find_dotenv())
 
 #login data
 PSWD = os.getenv('PASSWORD')
 URI = os.getenv('LISTSERV_URI')
+
+# Check that data is set in the .env
+assert PSWD, "No password in .env\nAborting"
+assert URI, "No uri in .env\nAborting"
+
+#suppress stderr because of ignorable selenium or requests warnings
+sys.stderr = open(os.devnull, 'w')
 
 '''
 lists to be filled with scraped data
@@ -145,3 +152,6 @@ log("Webserv and Database are up to date.\n")
 #logout before exiting
 browser.visit(URI + '/logout')
 browser.quit()
+
+#reset stderr
+sys.stderr = sys.__stderr__
