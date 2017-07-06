@@ -25,10 +25,8 @@ pip freeze > requirements.txt
 
 ##RUN:
 ```
-./update_emails.py 2> /dev/null
+./update_emails.py
 ```
-
-* Redirecting stderr because of selenium or requests warnings.
 
 ##NOTES:
 The email text files contain dummy email/name data used
