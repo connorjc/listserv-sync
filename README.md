@@ -11,7 +11,7 @@
 
 * phantomjs is a headless browser
 * geckodriver is used for Firefox
-    * geckodriver is only included for graphical debugging purposes.
+    * geckodriver is only included for debugging purposes.
 
 ##INTSTALL:
 ```
@@ -25,7 +25,7 @@ pip freeze > requirements.txt
 
 ##RUN:
 ```
-./update_emails.py
+./update_emails.py [-h] [-q] [-d]
 ```
 
 ##NOTES:
@@ -36,3 +36,4 @@ database and webserv data.
 * oldEmails.txt : total fake data
 * mixEmails.txt : oldEmails short ~164 emails 
 * newEmails.txt : 5 emails from the original
+* mostEmails.txt : 1000 emails for a stress test
