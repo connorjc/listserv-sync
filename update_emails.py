@@ -26,29 +26,28 @@ def get_db_content(filename):
 def get_web_emails(site, db, uri):
     #navigate to membership management
     site.visit(uri + '/members/list')
+    letters = map(str, re.findall('/members\?letter=[a-z]', site.html))
+    if letters != []:
+        letters = list(set(letters))
     web = list()
-    temp=''
-    #TODO: find another algorithm to scrape faster
-    maxUsers = total = int(re.search('<em>([0-9]*) members total',site.html).group(1))
-    while(total > 0): #emails found
+    maxUsers = int(re.search('<em>([0-9]*) members total',site.html).group(1))
+    if letters != []: #found letters
+        for letter in letters:
+            site.visit(uri + letter)
+            chunks = len(site.find_link_by_partial_href('&chunk='))
+            for chunk in xrange(chunks+1):
+                site.visit(uri + letter + '&chunk=' + str(chunk))
+                links = site.find_link_by_partial_href('--at--')
+                for link in links:
+                    web.append(link.value)
+                log("Scraping data from webserv. \033[93m" + \
+                    str(round(float(len(web))/maxUsers *100))\
+                    +"% complete\033[0m")
+    else: #all on on page
+        site.visit(uri + '/members/list')
         links = site.find_link_by_partial_href('--at--')
         for link in links:
             web.append(link.value)
-            entry = ''
-            try:
-                entry = db[link.value] 
-            except:
-                entry = ' '
-            temp += entry + ' <' + link.value + '>\n'
-        remove_webserv_emails(site, temp, uri, "disable")
-        site.visit(uri + '/members/list')
-        total = int(re.search('<em>([0-9]*) members total',site.html).group(1))
-        log("Scraping data from webserv. \033[93m" + \
-            str(round(100 - float(total)/maxUsers *100))\
-            +"% complete\033[0m")
-
-    #else no emails
-    add_webserv_emails(site, temp, uri, "disable")
     log("Webserv data is collected")
     return web
 
@@ -100,25 +99,13 @@ def remove_webserv_emails(site, emails, uri, logging="enable"):
     total = emails.split('\n') 
     size = len(total)
     site.visit(URI + '/members/remove')
-    while len(total) != 0:
-        sublist = ''
-        try:
-            for _ in range(30):
-                sublist += total.pop() + '\n'
-        except IndexError:
-            pass
-        finally:
-            site.fill('unsubscribees', emails)
-            site.find_by_name('setmemberopts_btn').click()
-        if logging == "enable":
-            if sublist == '\n':
-                log("Nothing to remove.")
-            else:
-                log("Removing data. \033[93m" + \
-                    str(round(100 - float(len(total))/size *100))\
-                    +"% complete\033[0m")
-                for email in sublist.strip().split('\n'):
-                    log("\033[34mremoved\033[0m " + email)
+    site.fill('unsubscribees', emails)
+    site.find_by_name('setmemberopts_btn').click()
+    emails = emails.split('\n')
+    if emails[-1] == '':
+        emails.pop()
+    for email in emails:
+        log("\033[34mremoved\033[0m " + email)
 
 def add_webserv_emails(site, emails, uri, logging="enable"):
     ''' emails: string of emails newline separated
@@ -127,25 +114,13 @@ def add_webserv_emails(site, emails, uri, logging="enable"):
     total = emails.split('\n')
     size = len(total)
     site.visit(URI + '/members/add')
-    while len(total) != 0:
-        sublist = ''
-        try:
-            for _ in range(30):
-                sublist += total.pop() + '\n'
-        except IndexError:
-            pass
-        finally:
-            site.fill('subscribees', emails)#emails
-            site.find_by_name('setmemberopts_btn').click()
-        if logging == "enable":
-            if sublist == '\n':
-                log("Nothing to add.")
-            else:
-                log("Adding data. \033[93m" + \
-                    str(round(100 - float(len(total))/size *100))\
-                    +"% complete\033[0m")
-                for email in sublist.strip().split('\n'):
-                    log("\033[32madded\033[0m " + email)
+    site.fill('subscribees', emails)
+    site.find_by_name('setmemberopts_btn').click()
+    emails = emails.split('\n')
+    if emails[-1] == "":
+        emails.pop()
+    for email in emails:
+        log("\033[32madded\033[0m " + email)
 
 def log(message):
     ''' logs in the format of: "timestamp removed/added email"
@@ -180,7 +155,7 @@ if __name__ == "__main__":
 
     #data structures to be filled with scraped data
     #dictionary format: key="email" value="lname fname"
-    db_content = get_db_content("newEmails.txt")
+    db_content = get_db_content("mostEmails.txt")
     #list format: ["email"]
     web_emails = get_web_emails(browser, db_content, URI)
         
