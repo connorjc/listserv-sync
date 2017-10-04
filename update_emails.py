@@ -92,10 +92,8 @@ def update_webserv(site, data, uri):
     remove_webserv_emails(site, removed_emails, uri)
     log("Webserv and database are synced")
 
-def remove_webserv_emails(site, emails, uri, logging="enable"):
-    ''' emails: string of emails newline separated
-        logging: is a flag whether or not to log the action, the default is to log
-    '''
+def remove_webserv_emails(site, emails, uri):
+    # emails: string of emails newline separated
     total = emails.split('\n') 
     size = len(total)
     site.visit(URI + '/members/remove')
@@ -107,10 +105,8 @@ def remove_webserv_emails(site, emails, uri, logging="enable"):
     for email in emails:
         log("\033[34mremoved\033[0m " + email)
 
-def add_webserv_emails(site, emails, uri, logging="enable"):
-    ''' emails: string of emails newline separated
-        logging: is a flag whether or not to log the action, the default is to log
-    '''
+def add_webserv_emails(site, emails, uri):
+    # emails: string of emails newline separated
     total = emails.split('\n')
     size = len(total)
     site.visit(URI + '/members/add')
@@ -135,6 +131,8 @@ if __name__ == "__main__":
             webserver utilizing scraping",epilog="Author: Connor Christian")
     parser.add_argument("-q", "--quiet", help="suppress output", action="store_true")
     parser.add_argument("-d", "--debug", help="use the firefox browser", action="store_true")
+    parser.add_argument("source", help="path to database emails source file",\
+            type=str)
     args = parser.parse_args()
 
     if args.debug:
@@ -155,7 +153,7 @@ if __name__ == "__main__":
 
     #data structures to be filled with scraped data
     #dictionary format: key="email" value="lname fname"
-    db_content = get_db_content("mostEmails.txt")
+    db_content = get_db_content(args.source)
     #list format: ["email"]
     web_emails = get_web_emails(browser, db_content, URI)
         
