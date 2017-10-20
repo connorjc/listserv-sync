@@ -33,7 +33,8 @@ The email text files contain dummy email/name data used
 to populate webserv and simulate discrepencies between the
 database and webserv data.
 
-* oldEmails.txt : total fake data
-* mixEmails.txt : oldEmails short ~164 emails 
-* newEmails.txt : 5 emails from the original
+* newEmails.txt : 5 emails
+* mixEmails.txt : 36 emails; oldEmails - ~164 emails 
+* oldEmails.txt : 203 emails
 * mostEmails.txt : 1000 emails for a stress test
+* extreme.txt : 2703 emails for a larger stress test
