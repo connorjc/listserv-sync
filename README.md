@@ -25,5 +25,5 @@ pip freeze > requirements.txt
 
 ##RUN:
 ```
-./update_emails.py [-h] [-q] [-d]
+./update_emails.py [-h] [-q] [-v] [-d]
 ```

@@ -14,6 +14,7 @@ def login_webserv(site, uri, pswd):
         pswd (str): Password required to login to the webserv.
     """
     site.visit(uri)
+    assert site.is_text_present(VERSION_NUMBER), "Incorrect version number\nAborting"
     site.fill('adminpw',pswd)
     site.find_by_name('admlogin').click()
     assert site.is_text_not_present('Authorization failed.'), "Login failed\nAborting"
@@ -47,9 +48,6 @@ def get_db_content(HOST, UNAME, DBPSWD, NAME):
 
     Returns:
         dict: Content attribute that contains all of the users on the database.
-
-    Todo:
-        Remove assert
     """
     
     # Open database connection
@@ -66,13 +64,9 @@ def get_db_content(HOST, UNAME, DBPSWD, NAME):
 
     content = dict()
     for user in data:
-        if user[0] == 'Christian Connor':
-            content[unicode(user[1], "utf-8")] = unicode(user[0], "utf-8")
+        content[unicode(user[1], "utf-8")] = unicode(user[0], "utf-8")
     # disconnect from server
     db.close()
-    
-    assert len(content) == 1
-
     log("Database data is collected")
     return content
 
@@ -202,11 +196,12 @@ def add_webserv_emails(site, uri, users):
         users (list): Converted emails string (args) to list.
 
     """
-    # emails: string of emails newline separated
-    site.visit(URI + '/members/add')
-    site.choose('send_welcome_msg_to_this_batch', '0')
-    site.fill('subscribees', users)
-    site.find_by_name('setmemberopts_btn').click()
+    if not args.dryrun:
+        # emails: string of emails newline separated
+        site.visit(URI + '/members/add')
+        site.choose('send_welcome_msg_to_this_batch', '0')
+        site.fill('subscribees', users)
+        site.find_by_name('setmemberopts_btn').click()
     users = users.split('\n')
     if users[-1] == "":
         users.pop()
@@ -228,11 +223,12 @@ def remove_webserv_emails(site, uri, emails):
         emails (list): Converted emails string (args) to list.
 
     """
-    # emails: string of emails newline separated
-    site.visit(URI + '/members/remove')
-    site.choose('send_unsub_ack_to_this_batch', '0')
-    site.fill('unsubscribees', emails)
-    site.find_by_name('setmemberopts_btn').click()
+    if not args.dryrun:
+        # emails: string of emails newline separated
+        site.visit(URI + '/members/remove')
+        site.choose('send_unsub_ack_to_this_batch', '0')
+        site.fill('unsubscribees', emails)
+        site.find_by_name('setmemberopts_btn').click()
     emails = emails.split('\n')
     if emails[-1] == '':
         emails.pop()
@@ -256,32 +252,31 @@ if __name__ == "__main__":
             synchronizing user's contact information from a database to a\
             webserver utilizing scraping",epilog="Author: Connor Christian")
     parser.add_argument("-q", "--quiet", help="suppress output", action="store_true")
-    parser.add_argument("-d", "--debug", help="use the firefox browser", action="store_true")
+    parser.add_argument("-v", "--verbose", help="use the firefox browser", action="store_true")
+    parser.add_argument("-d", "--dryrun", help="perform a dry run by not changing the listserv", action="store_true")
     args = parser.parse_args()
-    if args.debug:
+    if args.verbose:
         browser = Browser()
     else:
         browser = Browser('phantomjs')
+    VERSION_NUMBER = "version 2.1.24"
     #collect login data collected from .env
     load_dotenv(find_dotenv())
-
     URI = os.getenv('LISTSERV_URI')
     PSWD = os.getenv('PASSWORD')
-
     HOST = os.getenv('HOST')
     UNAME = os.getenv('UNAME')
     DBPSWD = os.getenv('DBPASSWD')
     NAME = os.getenv('DBNAME')
-
     # Check that data is set in the .env
     assert URI, "No uri in .env\nAborting"
     assert PSWD, "No password in .env\nAborting"
-    
     assert HOST, "No host for database in .env\nAborting"
     assert UNAME, "No database user in .env\nAborting"
     assert DBPSWD, "No database password in .env\nAborting"
     assert NAME, "No database name in .env\nAborting"
-
+    if args.dryrun:
+        log("\033[93mPerforming dry run\033[0m")
     login_webserv(browser, URI, PSWD)
     #data structures to be filled with scraped data:
     #dictionary format: key="email" value="lname fname"
