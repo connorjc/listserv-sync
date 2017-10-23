@@ -40,8 +40,8 @@ def get_db_content(HOST, UNAME, DBPSWD, NAME):
         NAME (str): Name of table in mysql database 
 
     Attributes:
-        db (pymysql.connections.Connection): 
-        cursor (pymysql.cursors.Cursor): 
+        db (pymysql.connections.Connection): Database connection
+        cursor (pymysql.cursors.Cursor): Used to interact with database
         data (tuple): All users returned from fetching from database
         content (dict): Data in the expected form of a database
 
@@ -63,7 +63,6 @@ def get_db_content(HOST, UNAME, DBPSWD, NAME):
         ORDER BY p.lname ASC, p.fname ASC")
     # Fetch a single row using fetchone() method.
     data = cursor.fetchall() # data = (("lname fname", "email"))
-    print len(data)
 
     content = dict()
     for user in data:
