@@ -1,78 +1,78 @@
 #!/usr/bin/env python
 from splinter import Browser
 from dotenv import load_dotenv, find_dotenv
-import time, os, sys, re, argparse#, MySQLdb
+import time, os, sys, re, argparse, pymysql
+
 def login_webserv(site, uri, pswd):
     """
     Logs into the webserv by navigating to the URL, inputting credentials, and
         clicking the login button.
     
     Args:
-        site (:obj: `splinter`): Instance of the splinter browser.
+        site (splinter.driver.webdriver): Instance of the splinter browser.
         uri (str): Web address to navigate with splinter browser.
         pswd (str): Password required to login to the webserv.
-
-    Todo:
-        Detect failed login. Raise error?
     """
     site.visit(uri)
     site.fill('adminpw',pswd)
     site.find_by_name('admlogin').click()
+    assert site.is_text_not_present('Authorization failed.'), "Login failed\nAborting"
 
 def logout_webserv(site, uri):
     """
     Logs out of the webserv.
 
     Args:
-        site (:obj: `splinter`): Instance of the splinter browser.
+        site (splinter.driver.webdriver): Instance of the splinter browser.
         uri (str): Web address to navigate with splinter browser.
     """
     site.visit(URI + '/logout')
     site.quit()
 
-def get_db_content(filename):
+def get_db_content(HOST, UNAME, DBPSWD, NAME):
     """
     Collects the emails from the "database" to be used later.
 
     Args:
+        HOST (str): Uri for mysql database
+        UNAME (str): Username for mysql database
+        DBPSWD (str): Password for mysql database
+        NAME (str): Name of table in mysql database 
 
     Attributes:
-        content (dict):
-        lname (str):
-        fname (str):
-        email (str):
+        db (pymysql.connections.Connection): 
+        cursor (pymysql.cursors.Cursor): 
+        data (tuple): All users returned from fetching from database
+        content (dict): Data in the expected form of a database
 
     Returns:
         dict: Content attribute that contains all of the users on the database.
 
     Todo:
-        Replace with real database commands.
+        Remove assert
     """
-    '''
+    
     # Open database connection
-    db = MySQLdb.connect(HOST, USER, DBPSWD, NAME)
-
+    db = pymysql.connect(HOST, UNAME, DBPSWD, NAME)
     # prepare a cursor object using cursor() method
     cursor = db.cursor()
-
     # execute SQL query using execute() method.
-    cursor.execute("SELECT VERSION()")
-
+    cursor.execute("SELECT CONCAT(p.lname, ' ', p.fname) AS name, p.email FROM \
+        ac_person p\
+        WHERE p.deleted IS NULL AND p.onnoticelist = 't'\
+        ORDER BY p.lname ASC, p.fname ASC")
     # Fetch a single row using fetchone() method.
-    data = cursor.fetchone()
+    data = cursor.fetchall() # data = (("lname fname", "email"))
+    print len(data)
 
-    print "Database version : %s " % data
-
+    content = dict()
+    for user in data:
+        if user[0] == 'Christian Connor':
+            content[unicode(user[1], "utf-8")] = unicode(user[0], "utf-8")
     # disconnect from server
     db.close()
-    '''
-    # DUMMY SCRAPER
-    content = dict()
-    with open(filename, 'r') as file:
-        for line in file:
-            lname, fname, email = line.split()
-            content[email] = lname + ' ' + fname
     
+    assert len(content) == 1
 
     log("Database data is collected")
     return content
@@ -82,7 +82,7 @@ def get_web_emails(site, uri):
     Scrapes the webserv for all of the users uploaded.
 
     Args:
-        site (:obj: `splinter`): Instance of the splinter browser.
+        site (splinter.driver.webdriver): Instance of the splinter browser.
         uri (str): Web address to navigate with splinter browser.
 
     Attributes:
@@ -93,7 +93,7 @@ def get_web_emails(site, uri):
         chunks (int): Stores the current "chunk" the scraper is at from the html. 
             Used for scraping all data if the webserv has organized it in 
             sublists.
-        links (:obj: `splinter`): Stores splinter obj referring to all the matching
+        links (splinter.element_list.ElementList): Stores splinter obj referring to all the matching
             elements. Used to find all emails on current screen.
 
     Returns:
@@ -101,7 +101,7 @@ def get_web_emails(site, uri):
     """
     #navigate to membership management
     site.visit(uri + '/members/list')
-    letters = map(str, re.findall('/members\?letter=[a-z]', site.html))
+    letters = map(str, re.findall('/members\?letter=[a-z0-9]', site.html))
     if letters != []:
         letters = list(set(letters))
     web_emails = list()
@@ -152,12 +152,10 @@ def compare_datasets(webmail, db_content):
     add_users = ""
     rm_emails = ""
     log("Comparing emails found on webserv with emails in database")
-
     #compares every email from the webserv to those found in the database
     for web_data in webmail:
         if web_data not in db_content: #if true, then that email must be removed
             rm_emails += web_data + '\n'
-    
     #compares every email from the database to those found in the webserv
     for db_data in db_content:
         if db_data not in webmail: #if true, then that email must be added
@@ -175,7 +173,7 @@ def update_webserv(site, uri, data):
         between the webser and database.
 
     Args:
-        site (:obj: `splinter`): Instance of the splinter browser.
+        site (splinter.driver.webdriver): Instance of the splinter browser.
         uri (str): Web address to navigate with splinter browser.
         data (tuple): First index is a list of emails to add. Second index is a
             list of emails to remove.
@@ -190,38 +188,13 @@ def update_webserv(site, uri, data):
     remove_webserv_emails(site, uri, removed_emails)
     log("Webserv and database are synced")
 
-def remove_webserv_emails(site, uri, emails):
-    """
-    Takes emails that have been passed in and navigates to unsubscription page
-        of the webserv that removes all matching content in the webserv.
-
-    Args:
-        site (:obj: `splinter`): Instance of the splinter browser.
-        uri (str): Web address to navigate with splinter browser.
-        emails (str): All emails that are to be removed from the webserv.
-            Format: "email\n"
-
-    Attributes:
-        emails (list): Converted emails string (args) to list.
-
-    """
-    # emails: string of emails newline separated
-    site.visit(URI + '/members/remove')
-    site.fill('unsubscribees', emails)
-    site.find_by_name('setmemberopts_btn').click()
-    emails = emails.split('\n')
-    if emails[-1] == '':
-        emails.pop()
-    for email in emails:
-        log("\033[34mremoved\033[0m " + email)
-
 def add_webserv_emails(site, uri, users):
     """
     Takes users that have been passed in and navigates to subscription page
         of the webserv that adds content to the webserv.
 
     Args:
-        site (:obj: `splinter`): Instance of the splinter browser.
+        site (splinter.driver.webdriver): Instance of the splinter browser.
         uri (str): Web address to navigate with splinter browser.
         users (str): All emails that are to be added to the webserv.
             Format: "lname fname <email>\n"
@@ -232,6 +205,7 @@ def add_webserv_emails(site, uri, users):
     """
     # emails: string of emails newline separated
     site.visit(URI + '/members/add')
+    site.choose('send_welcome_msg_to_this_batch', '0')
     site.fill('subscribees', users)
     site.find_by_name('setmemberopts_btn').click()
     users = users.split('\n')
@@ -239,6 +213,32 @@ def add_webserv_emails(site, uri, users):
         users.pop()
     for user in users:
         log("\033[32madded\033[0m " + user)
+
+def remove_webserv_emails(site, uri, emails):
+    """
+    Takes emails that have been passed in and navigates to unsubscription page
+        of the webserv that removes all matching content in the webserv.
+
+    Args:
+        site (splinter.driver.webdriver): Instance of the splinter browser.
+        uri (str): Web address to navigate with splinter browser.
+        emails (str): All emails that are to be removed from the webserv.
+            Format: "email\n"
+
+    Attributes:
+        emails (list): Converted emails string (args) to list.
+
+    """
+    # emails: string of emails newline separated
+    site.visit(URI + '/members/remove')
+    site.choose('send_unsub_ack_to_this_batch', '0')
+    site.fill('unsubscribees', emails)
+    site.find_by_name('setmemberopts_btn').click()
+    emails = emails.split('\n')
+    if emails[-1] == '':
+        emails.pop()
+    for email in emails:
+        log("\033[34mremoved\033[0m " + email)
 
 def log(message):
     """
@@ -258,45 +258,36 @@ if __name__ == "__main__":
             webserver utilizing scraping",epilog="Author: Connor Christian")
     parser.add_argument("-q", "--quiet", help="suppress output", action="store_true")
     parser.add_argument("-d", "--debug", help="use the firefox browser", action="store_true")
-    parser.add_argument("source", help="path to database emails source file",\
-            type=str)
     args = parser.parse_args()
-
     if args.debug:
         browser = Browser()
     else:
         browser = Browser('phantomjs')
-
     #collect login data collected from .env
     load_dotenv(find_dotenv())
+
     URI = os.getenv('LISTSERV_URI')
     PSWD = os.getenv('PASSWORD')
 
     HOST = os.getenv('HOST')
-    USER = os.getenv('USER')
+    UNAME = os.getenv('UNAME')
     DBPSWD = os.getenv('DBPASSWD')
     NAME = os.getenv('DBNAME')
-    #TYPE = os.getenv('DBTYPE')
-    
 
     # Check that data is set in the .env
     assert URI, "No uri in .env\nAborting"
     assert PSWD, "No password in .env\nAborting"
     
     assert HOST, "No host for database in .env\nAborting"
-    assert USER, "No database user in .env\nAborting"
+    assert UNAME, "No database user in .env\nAborting"
     assert DBPSWD, "No database password in .env\nAborting"
     assert NAME, "No database name in .env\nAborting"
-    #assert TYPE, "No database type in .env\nAborting"
 
     login_webserv(browser, URI, PSWD)
-
     #data structures to be filled with scraped data:
     #dictionary format: key="email" value="lname fname"
-    db_content = get_db_content(args.source)
+    db_content = get_db_content(HOST, UNAME, DBPSWD, NAME)
     #list format: ["email"]
     web_emails = get_web_emails(browser, URI)
-        
     update_webserv(browser, URI, compare_datasets(web_emails, db_content))
-    
     logout_webserv(browser, URI)

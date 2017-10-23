@@ -7,7 +7,7 @@
 6. *cp phantomjs ../bin
 7. *cp geckodriver ../bin
 8. cp .env.example .env
-9. edit .env to store the values with website and password to the listserv
+9. edit .env to store the credentials for the listserv and database
 
 * phantomjs is a headless browser
 * geckodriver is used for Firefox
@@ -27,14 +27,3 @@ pip freeze > requirements.txt
 ```
 ./update_emails.py [-h] [-q] [-d]
 ```
-
-##NOTES:
-The email text files contain dummy email/name data used
-to populate webserv and simulate discrepencies between the
-database and webserv data.
-
-* newEmails.txt : 5 emails
-* mixEmails.txt : 36 emails; oldEmails - ~164 emails 
-* oldEmails.txt : 203 emails
-* mostEmails.txt : 1000 emails for a stress test
-* extreme.txt : 2703 emails for a larger stress test

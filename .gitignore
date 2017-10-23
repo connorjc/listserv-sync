@@ -4,6 +4,13 @@
 # ignore .env
 .env
 
+# ignore testfiles 
+newEmails.txt
+mixEmails.txt
+oldEmails.txt
+mostEmails.txt
+extreme.txt
+
 # ignore nano and vim text editor temp files
 *~
 *.swp
