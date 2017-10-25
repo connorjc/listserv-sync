@@ -83,6 +83,9 @@ def get_web_emails(site, uri):
         web_emails (list): Stores all of the scraped emails.
         maxUsers (int): Stores the total number of emails on the webserv. Used 
             for logging progress.
+        current (int): Counter for what percentage of emails have been scraped
+        rows (str): Unused variable that stores how many rows the terminal window is.
+        columns (int): Stores the number of columns wide the terminal window is
         chunks (int): Stores the current "chunk" the scraper is at from the html. 
             Used for scraping all data if the webserv has organized it in 
             sublists.
