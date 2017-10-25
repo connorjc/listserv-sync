@@ -99,6 +99,10 @@ def get_web_emails(site, uri):
         letters = list(set(letters))
     web_emails = list()
     maxUsers = int(re.search('<em>([0-9]*) members total',site.html).group(1))
+    current = 0
+    rows, columns = os.popen('stty size', 'r').read().split()
+    columns = min(int(columns) - len("] 100% complete "), 80)
+    log("Scraping data from webserv")
     if letters != []: #found letters
         for letter in letters:
             site.visit(uri + letter)
@@ -108,9 +112,15 @@ def get_web_emails(site, uri):
                 links = site.find_link_by_partial_href('--at--')
                 for link in links:
                     web_emails.append(link.value)
-                log("Scraping data from webserv. \033[93m" + \
-                    str(round(float(len(web_emails))/maxUsers *100))\
-                    +"% complete\033[0m")
+            current = int(round(float(len(web_emails))/maxUsers *columns))
+            if not args.quiet:
+                sys.stdout.write("\r\033[93m" + '['\
+                    + '#'*(current) + ' '*(columns - current) \
+                    + "] " + str(int(round(float(len(web_emails))/maxUsers *100)))\
+                    + "% complete\033[0m")
+                sys.stdout.flush()
+        if not args.quiet:
+            sys.stdout.write('\n')
     else: #all on one page
         site.visit(uri + '/members/list')
         links = site.find_link_by_partial_href('--at--')

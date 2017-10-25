@@ -4,8 +4,8 @@
 3. source bin/activate
 4. git clone ________
 5. cd listserv-sync
-6. *cp phantomjs ../bin
-7. *cp geckodriver ../bin
+6. cp phantomjs ../bin
+7. cp geckodriver ../bin
 8. cp .env.example .env
 9. edit .env to store the credentials for the listserv and database
 
