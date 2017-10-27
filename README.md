@@ -1,5 +1,5 @@
 ##SETUP:
-```sh
+```
 virtualenv <DIRECTORY> --no-site-packages
 cd <DIRECTORY>
 source bin/activate
@@ -12,7 +12,7 @@ cp .env.example .env
 edit ```.env``` to store the credentials for the listserv and database
 
 ##INTSTALL:
-```sh
+```
 pip install -r requirements.txt
 ```
 
@@ -22,7 +22,7 @@ pip freeze > requirements.txt
 ```
 
 ##RUN:
-```sh
+```
 ./update_emails.py [-h] [-q] [-v] [-d]
 ```
 
