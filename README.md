@@ -43,7 +43,3 @@ or
 ```
 python3.x update_emails.py [-h] [-q] [-v] [-d]
 ```
-
-##NOTES:
-phantomjs is a headless browser
-geckodriver is used for Firefox for debugging
