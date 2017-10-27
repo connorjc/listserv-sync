@@ -1,13 +1,27 @@
 #!/usr/bin/env python
-from splinter import Browser
+
+"""
+This module syncronizes user name and emails between a mysql database and
+mailman server. Correct login credientials for the databse and mailman server
+must be provided in a '.env' file.
+
+author: Connor Christian
+"""
+
+import argparse
+import os
+import re
+import sys
+import time
+import pymysql
 from dotenv import load_dotenv, find_dotenv
-import time, os, sys, re, argparse, pymysql
+from splinter import Browser
 
 def login_webserv(site, uri, pswd):
     """
     Logs into the webserv by navigating to the URL, inputting credentials, and
         clicking the login button.
-    
+
     Args:
         site (splinter.driver.webdriver): Instance of the splinter browser.
         uri (str): Web address to navigate with splinter browser.
@@ -15,7 +29,7 @@ def login_webserv(site, uri, pswd):
     """
     site.visit(uri)
     assert site.is_text_present(VERSION_NUMBER), "Incorrect version number\nAborting"
-    site.fill('adminpw',pswd)
+    site.fill('adminpw', pswd)
     site.find_by_name('admlogin').click()
     assert site.is_text_not_present('Authorization failed.'), "Login failed\nAborting"
 
@@ -27,7 +41,7 @@ def logout_webserv(site, uri):
         site (splinter.driver.webdriver): Instance of the splinter browser.
         uri (str): Web address to navigate with splinter browser.
     """
-    site.visit(URI + '/logout')
+    site.visit(uri + '/logout')
     site.quit()
 
 def get_db_content(HOST, UNAME, DBPSWD, NAME):
@@ -38,7 +52,7 @@ def get_db_content(HOST, UNAME, DBPSWD, NAME):
         HOST (str): Uri for mysql database
         UNAME (str): Username for mysql database
         DBPSWD (str): Password for mysql database
-        NAME (str): Name of table in mysql database 
+        NAME (str): Name of table in mysql database
 
     Attributes:
         db (pymysql.connections.Connection): Database connection
@@ -49,7 +63,7 @@ def get_db_content(HOST, UNAME, DBPSWD, NAME):
     Returns:
         dict: Content attribute that contains all of the users on the database.
     """
-    
+
     # Open database connection
     db = pymysql.connect(HOST, UNAME, DBPSWD, NAME)
     # prepare a cursor object using cursor() method
@@ -81,13 +95,13 @@ def get_web_emails(site, uri):
     Attributes:
         letters (list): Contains every letter representing a tab in the html.
         web_emails (list): Stores all of the scraped emails.
-        maxUsers (int): Stores the total number of emails on the webserv. Used 
+        maxUsers (int): Stores the total number of emails on the webserv. Used
             for logging progress.
         current (int): Counter for what percentage of emails have been scraped
         rows (str): Unused variable that stores how many rows the terminal window is.
         columns (int): Stores the number of columns wide the terminal window is
-        chunks (int): Stores the current "chunk" the scraper is at from the html. 
-            Used for scraping all data if the webserv has organized it in 
+        chunks (int): Stores the current "chunk" the scraper is at from the html.
+            Used for scraping all data if the webserv has organized it in
             sublists.
         links (splinter.element_list.ElementList): Stores splinter obj referring to all the matching
             elements. Used to find all emails on current screen.
@@ -97,11 +111,11 @@ def get_web_emails(site, uri):
     """
     #navigate to membership management
     site.visit(uri + '/members/list')
-    letters = map(str, re.findall('/members\?letter=[a-z0-9]', site.html))
+    letters = map(str, re.findall(r'/members\?letter=[a-z0-9]', site.html))
     if letters != []:
         letters = list(set(letters))
     web_emails = list()
-    maxUsers = int(re.search('<em>([0-9]*) members total',site.html).group(1))
+    maxUsers = int(re.search('<em>([0-9]*) members total', site.html).group(1))
     current = 0
     rows, columns = os.popen('stty size', 'r').read().split()
     columns = min(int(columns) - len("] 100% complete "), 80)
@@ -134,7 +148,7 @@ def get_web_emails(site, uri):
 
 def compare_datasets(webmail, db_content):
     """
-    Compares email lists and appends data to appropriate add/rm_email data 
+    Compares email lists and appends data to appropriate add/rm_email data
         structs.
 
     Examples:
@@ -148,9 +162,9 @@ def compare_datasets(webmail, db_content):
 
     Attributes:
         add_users (str): Newline separated emails to be added of the format:
-            "lname fname <email>\n".
+            "lname fname <email>\\n".
         rm_emails (str): Newline separated emails to be removed of the format:
-            "email\n".
+            "email\\n".
 
     Returns:
         tuple: Contains the emails to add and remove from the webserv
@@ -165,16 +179,11 @@ def compare_datasets(webmail, db_content):
     #compares every email from the database to those found in the webserv
     for db_data in db_content:
         if db_data not in webmail: #if true, then that email must be added
-            entry = ''
-            try:
-                entry = db_content[db_data] 
-            except:
-                entry = ' '
-            add_users += entry + ' <' + db_data + '>\n'
+            add_users += db_content[db_data] + ' <' + db_data + '>\n'
     return tuple([add_users, rm_emails])
 
 def update_webserv(site, uri, data):
-    """ 
+    """
     Updates the webserv by adding and removing emails based on descrepencies
         between the webser and database.
 
@@ -203,7 +212,7 @@ def add_webserv_emails(site, uri, users):
         site (splinter.driver.webdriver): Instance of the splinter browser.
         uri (str): Web address to navigate with splinter browser.
         users (str): All emails that are to be added to the webserv.
-            Format: "lname fname <email>\n"
+            Format: "lname fname <email>\\n"
 
     Attributes:
         users (list): Converted emails string (args) to list.
@@ -211,7 +220,7 @@ def add_webserv_emails(site, uri, users):
     """
     if not args.dryrun:
         # emails: string of emails newline separated
-        site.visit(URI + '/members/add')
+        site.visit(uri + '/members/add')
         site.choose('send_welcome_msg_to_this_batch', '0')
         site.fill('subscribees', users)
         site.find_by_name('setmemberopts_btn').click()
@@ -230,7 +239,7 @@ def remove_webserv_emails(site, uri, emails):
         site (splinter.driver.webdriver): Instance of the splinter browser.
         uri (str): Web address to navigate with splinter browser.
         emails (str): All emails that are to be removed from the webserv.
-            Format: "email\n"
+            Format: "email\\n"
 
     Attributes:
         emails (list): Converted emails string (args) to list.
@@ -238,7 +247,7 @@ def remove_webserv_emails(site, uri, emails):
     """
     if not args.dryrun:
         # emails: string of emails newline separated
-        site.visit(URI + '/members/remove')
+        site.visit(uri + '/members/remove')
         site.choose('send_unsub_ack_to_this_batch', '0')
         site.fill('unsubscribees', emails)
         site.find_by_name('setmemberopts_btn').click()
@@ -257,16 +266,18 @@ def log(message):
         message (str): Content to output with timestamp.
     """
     if not args.quiet:
-        print(time.strftime("%Y-%m-%d %H:%M:%S") + ' ' + message)
+        print time.strftime("%Y-%m-%d %H:%M:%S") + ' ' + message
 
 if __name__ == "__main__":
     # argparse used to generate help menu and easy commandline argument parsing
     parser = argparse.ArgumentParser(description="A headless opensource tool for\
             synchronizing user's contact information from a database to a\
-            webserver utilizing scraping",epilog="Author: Connor Christian")
+            webserver utilizing scraping", epilog="Author: Connor Christian")
     parser.add_argument("-q", "--quiet", help="suppress output", action="store_true")
-    parser.add_argument("-v", "--verbose", help="use the firefox browser", action="store_true")
-    parser.add_argument("-d", "--dryrun", help="perform a dry run by not changing the listserv", action="store_true")
+    parser.add_argument("-v", "--verbose", help="use the firefox browser",
+                        action="store_true")
+    parser.add_argument("-d", "--dryrun", help="perform a dry run by not \
+        changing the listserv", action="store_true")
     args = parser.parse_args()
     if args.verbose:
         browser = Browser()

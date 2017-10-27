@@ -1,7 +1,7 @@
-# ignore output from browsers
+# output from browsers
 *.log
 
-# ignore .env
+# .env
 .env
 
 # ignore testfiles 
@@ -11,10 +11,13 @@ oldEmails.txt
 mostEmails.txt
 extreme.txt
 
-# ignore nano and vim text editor temp files
+# nano and vim text editor temp files
 *~
 *.swp
 *.swo
 
-#ignore bash scripts
+# bash scripts
 *.sh
+
+# compiled python
+*.pyc
