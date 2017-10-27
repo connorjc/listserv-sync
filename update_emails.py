@@ -1,21 +1,25 @@
 #!/usr/bin/env python
 
 """
-This module syncronizes user name and emails between a mysql database and
+This script syncronizes user name and emails between a mysql database and
 mailman server. Correct login credientials for the databse and mailman server
 must be provided in a '.env' file.
 
-author: Connor Christian
+Python2 & Python3 compatible.
+
+Author: Connor Christian
 """
 
+from __future__ import print_function, division, unicode_literals
 import argparse
 import os
 import re
 import sys
 import time
+from builtins import range
+import dotenv
+import splinter
 import pymysql
-from dotenv import load_dotenv, find_dotenv
-from splinter import Browser
 
 def login_webserv(site, uri, pswd):
     """
@@ -63,7 +67,6 @@ def get_db_content(HOST, UNAME, DBPSWD, NAME):
     Returns:
         dict: Content attribute that contains all of the users on the database.
     """
-
     # Open database connection
     db = pymysql.connect(HOST, UNAME, DBPSWD, NAME)
     # prepare a cursor object using cursor() method
@@ -75,7 +78,6 @@ def get_db_content(HOST, UNAME, DBPSWD, NAME):
         ORDER BY p.lname ASC, p.fname ASC")
     # Fetch a single row using fetchone() method.
     data = cursor.fetchall() # data = (("lname fname", "email"))
-
     content = dict()
     for user in data:
         content[unicode(user[1], "utf-8")] = unicode(user[0], "utf-8")
@@ -124,16 +126,17 @@ def get_web_emails(site, uri):
         for letter in letters:
             site.visit(uri + letter)
             chunks = len(site.find_link_by_partial_href('&chunk='))
-            for chunk in xrange(chunks+1):
+            for chunk in range(chunks+1):
                 site.visit(uri + letter + '&chunk=' + str(chunk))
                 links = site.find_link_by_partial_href('--at--')
                 for link in links:
                     web_emails.append(link.value)
-            current = int(round(float(len(web_emails))/maxUsers *columns))
+            ratio = len(web_emails)/maxUsers
+            current = int(round(ratio*columns))
             if not args.quiet:
                 sys.stdout.write("\r\033[93m" + '['\
                     + '#'*(current) + ' '*(columns - current) \
-                    + "] " + str(int(round(float(len(web_emails))/maxUsers *100)))\
+                    + "] " + str(int(round(ratio*100)))\
                     + "% complete\033[0m")
                 sys.stdout.flush()
         if not args.quiet:
@@ -266,13 +269,14 @@ def log(message):
         message (str): Content to output with timestamp.
     """
     if not args.quiet:
-        print time.strftime("%Y-%m-%d %H:%M:%S") + ' ' + message
+        print(time.strftime("%Y-%m-%d %H:%M:%S") + ' ' + message)
 
 if __name__ == "__main__":
     # argparse used to generate help menu and easy commandline argument parsing
     parser = argparse.ArgumentParser(description="A headless opensource tool for\
             synchronizing user's contact information from a database to a\
-            webserver utilizing scraping", epilog="Author: Connor Christian")
+            webserver utilizing scraping. This script is python2 and python3\
+            compatible.", epilog="Author: Connor Christian")
     parser.add_argument("-q", "--quiet", help="suppress output", action="store_true")
     parser.add_argument("-v", "--verbose", help="use the firefox browser",
                         action="store_true")
@@ -280,12 +284,12 @@ if __name__ == "__main__":
         changing the listserv", action="store_true")
     args = parser.parse_args()
     if args.verbose:
-        browser = Browser()
+        browser = splinter.Browser()
     else:
-        browser = Browser('phantomjs')
+        browser = splinter.Browser('phantomjs')
     VERSION_NUMBER = "version 2.1.24"
     #collect login data collected from .env
-    load_dotenv(find_dotenv())
+    dotenv.load_dotenv(dotenv.find_dotenv())
     URI = os.getenv('LISTSERV_URI')
     PSWD = os.getenv('PASSWORD')
     HOST = os.getenv('HOST')

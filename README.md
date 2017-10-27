@@ -1,6 +1,16 @@
 ##SETUP:
+###Python2:
 ```
 virtualenv <DIRECTORY> --no-site-packages
+```
+
+###Python3:
+```
+python3.x -m venv <DIRECTORY>
+```
+
+###Both:
+```
 cd <DIRECTORY>
 source bin/activate
 git clone https://connorjc@bitbucket.org/fsurcc/listserv-sync.git
@@ -17,13 +27,21 @@ pip install -r requirements.txt
 ```
 
 ##GENERATE INSTALLATION LIST:
-```sh
+```
 pip freeze > requirements.txt
 ```
 
 ##RUN:
 ```
 ./update_emails.py [-h] [-q] [-v] [-d]
+```
+or
+```
+python2 update_emails.py [-h] [-q] [-v] [-d]
+```
+or
+```
+python3.x update_emails.py [-h] [-q] [-v] [-d]
 ```
 
 ##NOTES:
