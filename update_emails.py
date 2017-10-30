@@ -79,8 +79,12 @@ def get_db_content(HOST, UNAME, DBPSWD, NAME):
     # Fetch a single row using fetchone() method.
     data = cursor.fetchall() # data = (("lname fname", "email"))
     content = dict()
-    for user in data:
-        content[user[1]] = user[0]
+    try: #python2 version
+        for user in data:
+            content[unicode(user[1], "utf-8")] = unicode(user[0], "utf-8")
+    except NameError: #python3
+        for user in data:
+            content[user[1]] = user[0]
     # disconnect from server
     db.close()
     log("Database data is collected")
