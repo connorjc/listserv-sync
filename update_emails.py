@@ -80,7 +80,7 @@ def get_db_content(HOST, UNAME, DBPSWD, NAME):
     data = cursor.fetchall() # data = (("lname fname", "email"))
     content = dict()
     for user in data:
-        content[unicode(user[1], "utf-8")] = unicode(user[0], "utf-8")
+        content[user[1]] = user[0]
     # disconnect from server
     db.close()
     log("Database data is collected")
