@@ -4,12 +4,14 @@
 # .env
 .env
 
-# ignore testfiles 
+# text testfiles 
 newEmails.txt
 mixEmails.txt
 oldEmails.txt
 mostEmails.txt
 extreme.txt
+
+__pycache__
 
 # nano and vim text editor temp files
 *~

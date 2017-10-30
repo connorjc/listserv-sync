@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 """
-This script syncronizes user name and emails between a mysql database and
-mailman server. Correct login credientials for the databse and mailman server
-must be provided in a '.env' file.
+A headless open source tool for synchronizing users' name and emails between a
+MySQL database and mailman server. Correct login credentials for the database
+and mailman server must be provided in a '.env' file.
 
 Python2 & Python3 compatible.
 
@@ -277,10 +277,11 @@ def log(message):
 
 if __name__ == "__main__":
     # argparse used to generate help menu and easy commandline argument parsing
-    parser = argparse.ArgumentParser(description="A headless opensource tool for\
-            synchronizing user's contact information from a database to a\
-            webserver utilizing scraping. This script is python2 and python3\
-            compatible.", epilog="Author: Connor Christian")
+    parser = argparse.ArgumentParser(description="A headless open source tool\
+            for synchronizing users' name and email between a mysql database\
+            and mailman server. Correct login credentials for the database and\
+            mailman server must be provided in a '.env' file. This script is\
+            python2 and python3 compatible.", epilog="Author: Connor Christian")
     parser.add_argument("-q", "--quiet", help="suppress output", action="store_true")
     parser.add_argument("-v", "--verbose", help="use the firefox browser",
                         action="store_true")
