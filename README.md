@@ -1,7 +1,7 @@
 #listserv-sync
 A headless open source tool for synchronizing users' name and email between a
 MySQL database and mailman server. Correct login credentials for the database
-and mailman server must be provided in a ```.env``` file.
+and mailman server must be provided in a `.env` file.
 
 
 Python2 & Python3 compatible.
@@ -27,7 +27,7 @@ cp phantomjs ../bin
 cp geckodriver ../bin
 cp .env.example .env
 ```
-edit ```.env``` to store the credentials for the listserv and database
+edit `.env` to store the credentials for the listserv and database
 
 ##INSTALL:
 ```sh
@@ -35,12 +35,12 @@ pip install -r requirements.txt
 ```
 ***
 ##COMMAND LINE ARGUMENTS:
- Argument                  | Description                                    
- ------------------------- | ---------------------------------------------- 
- ```-h```, ```--help```    | show this help message and exit                
- ```-q```, ```--quiet```   | suppress output                                
- ```-v```, ```--verbose``` | use the headed firefox browser                 
- ```-d```, ```--dryrun```  | perform a dry run by not changing the listserv 
+ Short| Long        | Description                                    
+ ---- | ----------- | ----------------------------------------------
+ `-h` | `--help`    | show this help message and exit               
+ `-q` | `--quiet`   | suppress output                               
+ `-v` | `--verbose` | use the headed firefox browser                
+ `-d` | `--dryrun`  | perform a dry run by not changing the listserv
 
 ##RUN:
 ###Python2:
