@@ -283,7 +283,7 @@ if __name__ == "__main__":
             mailman server must be provided in a '.env' file. This script is\
             python2 and python3 compatible.", epilog="Author: Connor Christian")
     parser.add_argument("-q", "--quiet", help="suppress output", action="store_true")
-    parser.add_argument("-v", "--verbose", help="use the firefox browser",
+    parser.add_argument("-v", "--verbose", help="use the headed firefox browser",
                         action="store_true")
     parser.add_argument("-d", "--dryrun", help="perform a dry run by not \
         changing the listserv", action="store_true")
