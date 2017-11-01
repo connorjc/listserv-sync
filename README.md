@@ -39,7 +39,7 @@ pip install -r requirements.txt
 
 -q, --quiet : suppress output
 
--v, --verbose : use the firefox browser
+-v, --verbose : use the headed firefox browser
 
 -d, --dryrun : perform a dry run by not changing the listserv
 
