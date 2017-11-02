@@ -21,7 +21,7 @@ python3.x -m venv <DIRECTORY>
 ```sh
 cd <DIRECTORY>
 source bin/activate
-git clone https://connorjc@bitbucket.org/fsurcc/listserv-sync.git
+git clone https://github.com/connorjc/listserv-sync.git
 cd listserv-sync
 cp phantomjs ../bin
 cp geckodriver ../bin
